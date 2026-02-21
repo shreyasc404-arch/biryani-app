@@ -1,167 +1,224 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Chicken Biryani - Master Recipe</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-        }
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        input {
-            padding: 8px;
-            width: 100px;
-        }
-        button {
-            padding: 10px 20px;
-            background: #1e88e5;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        th {
-            background: #1e88e5;
-            color: white;
-        }
-        .warning {
-            color: red;
-            font-weight: bold;
-        }
-    </style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Savi Biryani Production System</title>
+
+<style>
+body {
+    margin:0;
+    font-family: Arial, sans-serif;
+    background:#111;
+    color:white;
+    text-align:center;
+}
+
+.screen {
+    display:none;
+    padding:40px;
+}
+
+.active {
+    display:block;
+}
+
+button {
+    padding:15px 30px;
+    font-size:20px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    margin-top:20px;
+}
+
+.primary { background:#28a745; color:white; }
+.secondary { background:#007bff; color:white; }
+
+input {
+    padding:10px;
+    font-size:20px;
+    width:150px;
+    text-align:center;
+}
+
+.step-title {
+    font-size:40px;
+    margin-bottom:20px;
+}
+
+.flame {
+    font-size:28px;
+    margin:15px 0;
+}
+
+.timer {
+    font-size:80px;
+    margin:20px 0;
+}
+
+.ingredients {
+    margin-top:20px;
+    font-size:22px;
+}
+</style>
 </head>
+
 <body>
 
-<h1>Chicken Biryani Master Recipe</h1>
-
-<div class="card">
-    <label>Enter Chicken Required (kg): </label>
-    <input type="number" id="multiplier" value="1" step="0.1">
-    <button onclick="calculate()">Generate Batch</button>
-    <p id="correctionNote" class="warning"></p>
+<!-- Setup Screen -->
+<div id="setup" class="screen active">
+    <h1>Savi Biryani Production</h1>
+    <h2>Enter Chicken (kg)</h2>
+    <input type="number" id="multiplier" value="1" step="0.5">
+    <br>
+    <button class="primary" onclick="startCooking()">Start Cooking</button>
 </div>
 
-<div class="card">
-    <table id="resultTable">
-        <thead>
-            <tr>
-                <th>Ingredient</th>
-                <th>Base Qty (gm)</th>
-                <th>Scaled Qty (gm)</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-</div>
-
-<div class="card">
-    <h3>Cooking Time Recommendation</h3>
-    <p id="cookingTime"></p>
+<!-- Cooking Screen -->
+<div id="cooking" class="screen">
+    <div class="step-title" id="stepTitle"></div>
+    <div class="flame" id="flameLevel"></div>
+    <div class="timer" id="timer"></div>
+    <div class="ingredients" id="ingredients"></div>
 </div>
 
 <script>
 
-const recipe = [
-    {name: "Chicken", qty: 1000},
-    {name: "Jeera Samba Rice", qty: 1000},
-    {name: "Oil", qty: 250},
-    {name: "Turmeric", qty: 4},
-    {name: "Garam Masala", qty: 15},
-    {name: "Onion", qty: 500},
-    {name: "Green Chilli", qty: 42},
-    {name: "Coriander Leaves", qty: 58},
-    {name: "Pudina", qty: 54},
-    {name: "Curd", qty: 400},
-    {name: "Ginger Garlic Paste", qty: 64},
-    {name: "Cinnamon", qty: 3},
-    {name: "Cardamom", qty: 3},
-    {name: "Cloves", qty: 2},
-    {name: "Cumin Seeds", qty: 6},
-    {name: "Star Anise", qty: 4},
-    {name: "Bay Leaves", qty: 5},
-    {name: "Salt (Marination)", qty: 16},
-    {name: "Salt (Cooking)", qty: 32},
-    {name: "Lemon Juice", qty: 40},
-    {name: "Water", qty: 1500},
-    {name: "Ghee (Finishing)", qty: 30}
-];
+let multiplier = 1;
+let currentStep = 0;
+let timerInterval;
 
-function calculate() {
-    const multiplier = parseFloat(document.getElementById("multiplier").value);
-    const tbody = document.querySelector("#resultTable tbody");
-    const note = document.getElementById("correctionNote");
-    const cookingTime = document.getElementById("cookingTime");
-
-    tbody.innerHTML = "";
-    note.innerHTML = "";
-
-    recipe.forEach(item => {
-
-        let scaled = item.qty * multiplier;
-
-        // Salt correction
-        if (item.name.includes("Salt") && multiplier > 5) {
-            scaled = item.qty * multiplier * 0.95;
-            note.innerHTML = "Salt correction applied for large batch.";
-        }
-
-        // Oil correction
-        if (item.name === "Oil" && multiplier > 8) {
-            scaled = item.qty * multiplier * 0.92;
-            note.innerHTML += " Oil correction applied.";
-        }
-
-        // Water rule
-        if (item.name === "Water") {
-            let riceScaled = 1000 * multiplier;
-            scaled = riceScaled * 1.5;
-        }
-
-        const row = `<tr>
-                        <td>${item.name}</td>
-                        <td>${item.qty}</td>
-                        <td>${scaled.toFixed(2)}</td>
-                     </tr>`;
-
-        tbody.innerHTML += row;
-    });
-
-    // Cooking Time Logic
-    if (multiplier <= 5) {
-        cookingTime.innerHTML = "Dum Time: 20 minutes";
-    } else if (multiplier <= 10) {
-        cookingTime.innerHTML = "Dum Time: 25 minutes";
-    } else if (multiplier <= 15) {
-        cookingTime.innerHTML = "Dum Time: 30 minutes";
-    } else {
-        cookingTime.innerHTML = "Dum Time: 35 minutes";
-    }
+function scale(value) {
+    return (value * multiplier).toFixed(0);
 }
 
-calculate();
+function saltScale(value) {
+    if(multiplier > 5) return (value * multiplier * 0.95).toFixed(0);
+    return (value * multiplier).toFixed(0);
+}
+
+function oilScale(value) {
+    if(multiplier > 8) return (value * multiplier * 0.92).toFixed(0);
+    return (value * multiplier).toFixed(0);
+}
+
+function waterScale(riceBase) {
+    return (riceBase * multiplier * 1.5).toFixed(0);
+}
+
+function getDumTime() {
+    if(multiplier <=5) return 20*60;
+    if(multiplier <=10) return 25*60;
+    if(multiplier <=15) return 30*60;
+    return 35*60;
+}
+
+function startCooking() {
+    multiplier = parseFloat(document.getElementById("multiplier").value);
+    document.getElementById("setup").classList.remove("active");
+    document.getElementById("cooking").classList.add("active");
+    runStep();
+}
+
+const steps = [
+{
+title:"Step 1 - Marination",
+flame:"❌ No Flame",
+duration:30*60,
+ingredients:()=>`
+Chicken: ${scale(1000)} g<br>
+Turmeric: ${scale(4)} g<br>
+Curd: ${scale(400)} g<br>
+Salt: ${saltScale(16)} g<br>
+Ginger Garlic Paste: ${scale(64)} g`
+},
+{
+title:"Step 2 - Heat Oil & Whole Spices",
+flame:"🔥 HIGH",
+duration:2*60,
+ingredients:()=>`
+Oil: ${oilScale(250)} g<br>
+Cinnamon, Cardamom, Cloves, Cumin, Star Anise, Bay Leaves`
+},
+{
+title:"Step 3 - Fry Onions",
+flame:"🔥 HIGH",
+duration:15*60,
+ingredients:()=>`
+Onions: ${scale(500)} g`
+},
+{
+title:"Step 4 - Cook Chicken",
+flame:"🔥 MEDIUM",
+duration:10*60,
+ingredients:()=>`Add Marinated Chicken`
+},
+{
+title:"Step 5 - Add Green Paste",
+flame:"🔥 MEDIUM",
+duration:10*60,
+ingredients:()=>`
+Coriander: ${scale(58)} g<br>
+Pudina: ${scale(54)} g<br>
+Green Chilli: ${scale(42)} g`
+},
+{
+title:"Step 6 - Add Rice & Water",
+flame:"🔥 HIGH",
+duration:10*60,
+ingredients:()=>`
+Rice: ${scale(1000)} g<br>
+Water: ${waterScale(1000)} g<br>
+Salt: ${saltScale(32)} g`
+},
+{
+title:"Step 7 - Dum Cooking",
+flame:"🔥 LOW (DUM)",
+duration:()=>getDumTime(),
+ingredients:()=>`Finish with Ghee: ${scale(30)} g`
+}
+];
+
+function runStep() {
+
+if(currentStep >= steps.length){
+    document.getElementById("stepTitle").innerHTML="✅ BATCH COMPLETE";
+    document.getElementById("flameLevel").innerHTML="";
+    document.getElementById("ingredients").innerHTML="";
+    document.getElementById("timer").innerHTML="";
+    return;
+}
+
+let step = steps[currentStep];
+let duration = typeof step.duration === "function" ? step.duration() : step.duration;
+
+document.getElementById("stepTitle").innerHTML = step.title;
+document.getElementById("flameLevel").innerHTML = step.flame;
+document.getElementById("ingredients").innerHTML = step.ingredients();
+
+startTimer(duration);
+}
+
+function startTimer(duration) {
+    let time = duration;
+
+    clearInterval(timerInterval);
+
+    timerInterval = setInterval(function() {
+        let minutes = Math.floor(time / 60);
+        let seconds = time % 60;
+        document.getElementById("timer").innerHTML =
+            `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        time--;
+
+        if(time < 0){
+            clearInterval(timerInterval);
+            currentStep++;
+            runStep();
+        }
+    },1000);
+}
 
 </script>
-
 </body>
 </html>
