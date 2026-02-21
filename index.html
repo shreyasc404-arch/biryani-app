@@ -32,13 +32,13 @@ button {
 }
 
 .primary { background:#28a745; color:white; }
-.secondary { background:#007bff; color:white; }
 
 input {
     padding:10px;
     font-size:20px;
     width:150px;
     text-align:center;
+    margin:10px;
 }
 
 .step-title {
@@ -68,8 +68,13 @@ input {
 <!-- Setup Screen -->
 <div id="setup" class="screen active">
     <h1>Savi Biryani Production</h1>
-    <h2>Enter Chicken (kg)</h2>
+
+    <h2>Chicken (kg)</h2>
     <input type="number" id="multiplier" value="1" step="0.5">
+
+    <h2>Marination Time (minutes)</h2>
+    <input type="number" id="marinationTime" value="30" step="1">
+
     <br>
     <button class="primary" onclick="startCooking()">Start Cooking</button>
 </div>
@@ -85,6 +90,7 @@ input {
 <script>
 
 let multiplier = 1;
+let marinationDuration = 30 * 60;
 let currentStep = 0;
 let timerInterval;
 
@@ -115,6 +121,9 @@ function getDumTime() {
 
 function startCooking() {
     multiplier = parseFloat(document.getElementById("multiplier").value);
+    let marinationMinutes = parseInt(document.getElementById("marinationTime").value);
+    marinationDuration = marinationMinutes * 60;
+
     document.getElementById("setup").classList.remove("active");
     document.getElementById("cooking").classList.add("active");
     runStep();
@@ -124,7 +133,7 @@ const steps = [
 {
 title:"Step 1 - Marination",
 flame:"❌ No Flame",
-duration:30*60,
+duration:()=>marinationDuration,
 ingredients:()=>`
 Chicken: ${scale(1000)} g<br>
 Turmeric: ${scale(4)} g<br>
